@@ -1,5 +1,7 @@
 import csv
 import os
+from tabulate import tabulate
+import pandas as pd
 
 from .vitis_utils import *
 from .backend_utils import copy_backend_to
@@ -114,12 +116,45 @@ class PharosHLS:
             performance = get_synth_performance_estimates(self.folder_path)
             save_dict_to_csv(param_values | resource | performance, csv_file_name)
 
-    def get_tb_output(self, top_function_name):
+    def get_testbench_results(self, function_name):
 
-        tb_file = Path(self.folder_path) / f"{top_function_name}_tb_output.json"
+        tb_file = Path(self.folder_path) / f"{function_name}_tb_output.json"
 
         if not Path(tb_file).exists():
-            raise Exception(f"Could not find {top_function_name}'s testbench output file.")
+            raise Exception(f"Could not find {function_name}'s testbench output file.")
         
         with open(tb_file, "r", encoding="utf-8") as f:
             return json.load(f)
+        
+    def get_synth_results(self, function_name, part, remove_const_cols = True):
+
+        csv_file = Path(self.folder_path) / "data" / f"{function_name}_{part}.csv"
+
+        if not Path(csv_file).exists():
+            raise Exception(f"Could not find {function_name}'s synthesis .csv file.")
+        
+        df =  pd.read_csv(csv_file)
+
+        if remove_const_cols:
+            for col in df.columns:
+                if df[col].nunique(dropna=False) == 1:
+                    df = df.drop(columns=[col])
+        
+        return df
+        
+    def print_synth_results(self, function_name, part, remove_const_cols = True):
+        
+        df = self.get_synth_results(function_name, part, remove_const_cols)
+        print(tabulate(df, headers="keys", tablefmt="grid", showindex=False, floatfmt=".0f"))
+
+    def generate_correlations_chart(self, function_name, part, method="kendall"):
+        
+        df = self.get_synth_results(function_name, part)
+        correlations = pd.DataFrame(index=cols_X, columns=cols_Y)
+        
+
+        for col_x in cols_X:
+            for col_y in cols_Y:
+                correlations.loc[col_x, col_y] = round(df[col_x].corr(df[col_y], method=method), 2)
+
+        return correlacoes
