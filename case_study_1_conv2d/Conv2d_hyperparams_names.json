@@ -1,0 +1,9 @@
+{
+    "dim": "Input Dimensions",
+    "kernel": "Kernel Size",
+    "stride": "Stride Size",
+    "padding": "Padding Size",
+    "ch_in": "Input Channels",
+    "ch_out": "Output Channels",
+    "quant": "Total Quantization Bits"
+}

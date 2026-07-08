@@ -2,6 +2,10 @@ import csv
 import os
 from tabulate import tabulate
 import pandas as pd
+import json
+
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from .vitis_utils import *
 from .backend_utils import copy_backend_to
@@ -40,6 +44,16 @@ def copy_to_implementation_header(file_path, folder_path):
     # Write the content to the new file
     with open(dest_path, 'w', encoding='utf-8') as dest_file:
         dest_file.write(content)
+
+def save_hyperparam_dict(hyperparams, folder, file_name):
+
+    names_dict = {}
+
+    for name, definition in hyperparams.items():
+        names_dict[name] = definition.name
+
+    with open(f"{folder}/{file_name}_hyperparams_names.json", "w", encoding="utf-8") as json_file:
+        json.dump(names_dict, json_file, ensure_ascii=False, indent=4)
 
 class PharosHLS:
 
@@ -147,14 +161,41 @@ class PharosHLS:
         df = self.get_synth_results(function_name, part, remove_const_cols)
         print(tabulate(df, headers="keys", tablefmt="grid", showindex=False, floatfmt=".0f"))
 
-    def generate_correlations_chart(self, function_name, part, method="kendall"):
+    def get_hyperparams_names(self, function_name):
+
+        with open(f"{self.folder_path}/{function_name}_hyperparams_names.json", "r", encoding="utf-8") as json_file:
+            hyperparams_names = json.load(json_file)
         
-        df = self.get_synth_results(function_name, part)
+        return hyperparams_names
+
+    def get_correlation_matrix(self, function_name, part, method="kendall"):
+
+        hyperparams_count = len(self.get_hyperparams_names(function_name))
+        df = self.get_synth_results(function_name, part, remove_const_cols=True)
+
+        cols_X = df.columns[:hyperparams_count]
+        cols_Y = df.columns[hyperparams_count:]
+        
         correlations = pd.DataFrame(index=cols_X, columns=cols_Y)
-        
 
         for col_x in cols_X:
             for col_y in cols_Y:
                 correlations.loc[col_x, col_y] = round(df[col_x].corr(df[col_y], method=method), 2)
 
-        return correlacoes
+        return correlations
+    
+    def generate_correlations_chart(self, function_name, part, method="kendall"):
+
+        corr = self.get_correlation_matrix(function_name, part, method)
+        hyperparams_names = self.get_hyperparams_names(function_name)
+
+        new_index_names = []
+
+        for key in corr.index:
+            new_index_names.append(hyperparams_names[key])
+
+        corr.index = new_index_names
+        # conv_resource.columns = ["Uso de BRAM 18K", "Uso de DSP", "Uso de FF", "Uso de LUT", "Total de Ciclos", "Periodo de Clock Min."]
+
+        sns.heatmap(corr.astype(float), annot=True, cmap="coolwarm")
+        plt.show()

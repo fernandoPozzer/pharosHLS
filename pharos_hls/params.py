@@ -1,15 +1,16 @@
 from .random_var import RandomVar
 
-class Param:
+class HyperParam:
     
-    def __init__(self, range: tuple, constraints: list = []):
+    def __init__(self, name: str, range: tuple, constraints: list = []):
 
         if len(range) != 2:
             raise Exception("Range must be a sized 2 tuple.")
         
+        self.name = name
         self.range = range
         self.constraints = constraints
-
+        
     def generate(self):
 
         random_var = RandomVar(self.range[0], self.range[1])
