@@ -184,7 +184,7 @@ class PharosHLS:
 
         return correlations
     
-    def generate_correlations_chart(self, function_name, part, method="kendall"):
+    def generate_correlations_chart(self, function_name: str, part: str, chart_name: str, method="kendall"):
 
         corr = self.get_correlation_matrix(function_name, part, method)
         hyperparams_names = self.get_hyperparams_names(function_name)
@@ -197,5 +197,26 @@ class PharosHLS:
         corr.index = new_index_names
         # conv_resource.columns = ["Uso de BRAM 18K", "Uso de DSP", "Uso de FF", "Uso de LUT", "Total de Ciclos", "Periodo de Clock Min."]
 
-        sns.heatmap(corr.astype(float), annot=True, cmap="coolwarm")
+        ax = sns.heatmap(
+            corr.astype(float),
+            annot=True,
+            cmap="coolwarm",
+        )
+
+        ax.set_xticklabels(
+            ax.get_xticklabels(),
+            rotation=45,
+            ha="right"
+        )
+
+        create_charts_folder(self.folder_path)
+
+        plt.savefig(f"{self.folder_path}/charts/{chart_name}", bbox_inches="tight")
         plt.show()
+
+def create_charts_folder(folder_name):
+
+    path = f"{folder_name}/charts"
+
+    if not os.path.exists(path):
+        os.makedirs(path)
