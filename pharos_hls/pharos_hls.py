@@ -45,15 +45,29 @@ def copy_to_implementation_header(file_path, folder_path):
     with open(dest_path, 'w', encoding='utf-8') as dest_file:
         dest_file.write(content)
 
-def save_hyperparam_dict(hyperparams, folder, file_name):
+def save_hyperparam_name_definitions(folder, function_name, hyperparams):
 
     names_dict = {}
 
     for name, definition in hyperparams.items():
         names_dict[name] = definition.name
 
-    with open(f"{folder}/{file_name}_hyperparams_names.json", "w", encoding="utf-8") as json_file:
+    with open(f"{folder}/{function_name}_name_definitions.json", "w", encoding="utf-8") as json_file:
         json.dump(names_dict, json_file, ensure_ascii=False, indent=4)
+
+def get_hyperparam_name_definitions(folder, function_name):
+
+    with open(f"{folder}/{function_name}_name_definitions.json", "r", encoding="utf-8") as json_file:
+        hyperparams_names = json.load(json_file)
+    
+    return hyperparams_names
+
+def get_metric_names(folder):
+
+    with open(f"{folder}/metric_names.json", "r", encoding="utf-8") as json_file:
+        metric_names = json.load(json_file)
+    
+    return metric_names
 
 class PharosHLS:
 
@@ -161,16 +175,14 @@ class PharosHLS:
         df = self.get_synth_results(function_name, part, remove_const_cols)
         print(tabulate(df, headers="keys", tablefmt="grid", showindex=False, floatfmt=".0f"))
 
-    def get_hyperparams_names(self, function_name):
+    def define_metric_names(self, metric_names: dict):
 
-        with open(f"{self.folder_path}/{function_name}_hyperparams_names.json", "r", encoding="utf-8") as json_file:
-            hyperparams_names = json.load(json_file)
-        
-        return hyperparams_names
+        with open(f"{self.folder_path}/metric_names.json", "w", encoding="utf-8") as json_file:
+            json.dump(metric_names, json_file, ensure_ascii=False, indent=4)
 
     def get_correlation_matrix(self, function_name, part, method="kendall"):
 
-        hyperparams_count = len(self.get_hyperparams_names(function_name))
+        hyperparams_count = len(get_hyperparam_name_definitions(self.folder_path, function_name))
         df = self.get_synth_results(function_name, part, remove_const_cols=True)
 
         cols_X = df.columns[:hyperparams_count]
@@ -187,15 +199,12 @@ class PharosHLS:
     def generate_correlations_chart(self, function_name: str, part: str, chart_name: str, method="kendall"):
 
         corr = self.get_correlation_matrix(function_name, part, method)
-        hyperparams_names = self.get_hyperparams_names(function_name)
 
-        new_index_names = []
+        hyperparam_names = get_hyperparam_name_definitions(self.folder_path, function_name)
+        metric_names = get_metric_names(self.folder_path)
 
-        for key in corr.index:
-            new_index_names.append(hyperparams_names[key])
-
-        corr.index = new_index_names
-        # conv_resource.columns = ["Uso de BRAM 18K", "Uso de DSP", "Uso de FF", "Uso de LUT", "Total de Ciclos", "Periodo de Clock Min."]
+        corr.index = get_correspondent_names(corr.index, hyperparam_names)
+        corr.columns = get_correspondent_names(corr.columns, metric_names)
 
         ax = sns.heatmap(
             corr.astype(float),
@@ -220,3 +229,12 @@ def create_charts_folder(folder_name):
 
     if not os.path.exists(path):
         os.makedirs(path)
+
+def get_correspondent_names(list_of_names, dictionary: dict):
+
+    new_names = []
+
+    for name in list_of_names:
+        new_names.append(dictionary.get(name, name))
+
+    return new_names

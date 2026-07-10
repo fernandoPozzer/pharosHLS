@@ -1,0 +1,8 @@
+{
+    "BRAM_18K": "18K BRAM Usage",
+    "DSP": "DSP Usage",
+    "FF": "FF Usage",
+    "LUT": "LUT Usage",
+    "avg_total_cycles": "Avg. Total Cycles",
+    "estimated_clock_period": "Est. Clock Period"
+}
