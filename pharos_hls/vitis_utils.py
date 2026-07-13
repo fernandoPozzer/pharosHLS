@@ -28,7 +28,6 @@ def append_tb_data_to_json(folder_path, top_function_name, config_output_item):
     with open(file_name, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-
 def create_vitis_project(folder_path):
 
     proj_path = Path(folder_path) / "vitis_proj"

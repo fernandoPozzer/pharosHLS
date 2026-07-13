@@ -11,6 +11,7 @@ from .vitis_utils import *
 from .backend_utils import copy_backend_to
 from .code_generator import generate_code
 from .get_synth_info import *
+from .plot_relation import plot_relation
 
 def save_dict_to_csv(data: dict, file_path: str):
     file_exists = os.path.exists(file_path)
@@ -222,6 +223,23 @@ class PharosHLS:
 
         plt.savefig(f"{self.folder_path}/charts/{chart_name}", bbox_inches="tight")
         plt.show()
+
+    def plot_relation(self, hyperparam, hw_metric, function_name, part, chart_name = None, regression_func = None):
+
+        df = self.get_synth_results(function_name, part, remove_const_cols=True)
+
+        hyperparam_names = get_hyperparam_name_definitions(self.folder_path, function_name)
+        metric_names = get_metric_names(self.folder_path)
+
+        hyperparam_name = hyperparam_names.get(hyperparam, hyperparam)
+        metric_name = metric_names.get(hw_metric, hw_metric)
+
+        file_name = None
+        if chart_name is not None:
+            create_charts_folder(self.folder_path)
+            file_name = f"{self.folder_path}/charts/{chart_name}"
+
+        plot_relation(df, hyperparam, hw_metric, regression_func, hyperparam_name, metric_name, file_name)
 
 def create_charts_folder(folder_name):
 
