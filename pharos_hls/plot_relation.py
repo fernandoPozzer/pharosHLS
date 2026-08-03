@@ -53,3 +53,46 @@ def plot_relation(df, hyperparam, hw_metric, func, hyperparam_name, metric_name,
         plt.savefig(chart_name)
 
     plt.show()
+
+def plot_ax_relation(
+    ax,
+    label,
+    df,
+    hyperparam,
+    hw_metric,
+    func,
+    hyperparam_name,
+    metric_name
+):
+    agg = aggregate_df_by_mean(df, hyperparam, hw_metric)
+
+    ax.plot(agg["key"], agg["mean"], marker="o")
+
+    if func is not None:
+        func_params, _ = curve_fit(
+            func,
+            agg["key"],
+            agg["mean"]
+        )
+
+        x_smooth = np.linspace(
+            agg["key"].min(),
+            agg["key"].max(),
+            200
+        )
+
+        y_func = func(x_smooth, *func_params)
+        ax.plot(x_smooth, y_func, linestyle="--")
+
+    ax.xaxis.set_major_locator(
+        ticker.MaxNLocator(
+            integer=True,
+            nbins=10
+        )
+    )
+
+    ax.set_title(label, loc="left", fontweight="bold")
+    ax.set_xlabel(hyperparam_name)
+    ax.set_ylabel(metric_name)
+
+    ax.grid(True)

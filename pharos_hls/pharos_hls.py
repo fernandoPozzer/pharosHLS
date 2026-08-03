@@ -11,7 +11,7 @@ from .vitis_utils import *
 from .backend_utils import copy_backend_to
 from .code_generator import generate_code
 from .get_synth_info import *
-from .plot_relation import plot_relation
+from .plot_relation import plot_relation, plot_ax_relation
 from .enums import *
 
 def save_dict_to_csv(data: dict, file_path: str):
@@ -228,7 +228,6 @@ class PharosHLS:
     def plot_relation(self, function_name, part, hyperparam, hw_metric: Metric, regression_func: Regression = None, chart_name = None):
     
         hw_metric = hw_metric.value
-        regression_func = regression_func
 
         df = self.get_synth_results(function_name, part, remove_const_cols=True)
 
@@ -244,6 +243,35 @@ class PharosHLS:
             file_name = f"{self.folder_path}/charts/{chart_name}"
 
         plot_relation(df, hyperparam, hw_metric, regression_func, hyperparam_name, metric_name, file_name)
+
+    def plot_multiple_relations(self, function_name, part, n_lins, n_cols, figsize: tuple, list_of_relations, chart_name = None):
+        
+        df = self.get_synth_results(function_name, part, remove_const_cols=True)
+        hyperparam_names = get_hyperparam_name_definitions(self.folder_path, function_name)
+        metric_names = get_metric_names(self.folder_path)
+
+        fig, axes = plt.subplots(n_lins, n_cols, figsize=figsize)
+        label = 'a'
+        
+        for ax, relation_info in zip(axes.flat, list_of_relations):
+
+            hyperparam, hw_metric, regression = relation_info
+            hw_metric = hw_metric.value
+
+            hyperparam_name = hyperparam_names.get(hyperparam, hyperparam)
+            metric_name = metric_names.get(hw_metric, hw_metric)
+
+            plot_ax_relation(ax, f"({label})", df, hyperparam, hw_metric, regression, hyperparam_name, metric_name)
+            label = chr(ord(label) + 1)
+
+        file_name = None
+        if chart_name is not None:
+            create_charts_folder(self.folder_path)
+            file_name = f"{self.folder_path}/charts/{chart_name}"
+        
+        plt.tight_layout()
+        plt.savefig(file_name, bbox_inches="tight")
+        plt.show()
 
 def create_charts_folder(folder_name):
 
