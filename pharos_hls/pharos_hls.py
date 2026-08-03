@@ -12,6 +12,7 @@ from .backend_utils import copy_backend_to
 from .code_generator import generate_code
 from .get_synth_info import *
 from .plot_relation import plot_relation
+from .enums import *
 
 def save_dict_to_csv(data: dict, file_path: str):
     file_exists = os.path.exists(file_path)
@@ -224,7 +225,10 @@ class PharosHLS:
         plt.savefig(f"{self.folder_path}/charts/{chart_name}", bbox_inches="tight")
         plt.show()
 
-    def plot_relation(self, hyperparam, hw_metric, function_name, part, chart_name = None, regression_func = None):
+    def plot_relation(self, function_name, part, hyperparam, hw_metric: Metric, regression_func: Regression = None, chart_name = None):
+    
+        hw_metric = hw_metric.value
+        regression_func = regression_func
 
         df = self.get_synth_results(function_name, part, remove_const_cols=True)
 
