@@ -245,6 +245,9 @@ class PharosHLS:
         plot_relation(df, hyperparam, hw_metric, regression_func, hyperparam_name, metric_name, file_name)
 
     def plot_multiple_relations(self, function_name, part, n_lins, n_cols, figsize: tuple, list_of_relations, chart_name = None):
+
+        if n_lins * n_cols < len(list_of_relations):
+            raise Exception(f"n_lins * n_cols < list of relations size")
         
         df = self.get_synth_results(function_name, part, remove_const_cols=True)
         hyperparam_names = get_hyperparam_name_definitions(self.folder_path, function_name)
@@ -264,13 +267,17 @@ class PharosHLS:
             plot_ax_relation(ax, f"({label})", df, hyperparam, hw_metric, regression, hyperparam_name, metric_name)
             label = chr(ord(label) + 1)
 
+        for ax in axes.flat[len(list_of_relations):]:
+            ax.set_visible(False)
+
+        plt.tight_layout()
+
         file_name = None
         if chart_name is not None:
             create_charts_folder(self.folder_path)
             file_name = f"{self.folder_path}/charts/{chart_name}"
-        
-        plt.tight_layout()
-        plt.savefig(file_name, bbox_inches="tight")
+            plt.savefig(file_name, bbox_inches="tight")
+
         plt.show()
 
 def create_charts_folder(folder_name):
