@@ -172,9 +172,15 @@ class PharosHLS:
         
         return df
         
-    def print_synth_results(self, function_name, part, remove_const_cols = True):
+    def print_synth_results(self, function_name: str, part: str, num_of_lines_to_print: int, remove_const_cols = True):
         
         df = self.get_synth_results(function_name, part, remove_const_cols)
+        total_lines = len(df)
+
+        if total_lines < num_of_lines_to_print:
+            num_of_lines_to_print = total_lines
+
+        df = df.head(num_of_lines_to_print)
         print(tabulate(df, headers="keys", tablefmt="grid", showindex=False, floatfmt=".0f"))
 
     def define_metric_names(self, metric_names: dict):
