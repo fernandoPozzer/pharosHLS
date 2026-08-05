@@ -172,12 +172,12 @@ class PharosHLS:
         
         return df
         
-    def print_synth_results(self, function_name: str, part: str, num_of_lines_to_print: int, remove_const_cols = True):
+    def print_synth_results(self, function_name: str, part: str, num_of_lines_to_print: int = -1, remove_const_cols = True):
         
         df = self.get_synth_results(function_name, part, remove_const_cols)
         total_lines = len(df)
 
-        if total_lines < num_of_lines_to_print:
+        if total_lines < num_of_lines_to_print or num_of_lines_to_print < 0:
             num_of_lines_to_print = total_lines
 
         df = df.head(num_of_lines_to_print)
