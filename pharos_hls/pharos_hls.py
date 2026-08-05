@@ -148,7 +148,7 @@ class PharosHLS:
 
     def get_testbench_results(self, function_name):
 
-        tb_file = Path(self.folder_path) / f"{function_name}_tb_output.json"
+        tb_file = Path(self.folder_path) / "data" / f"{function_name}_tb_output.json"
 
         if not Path(tb_file).exists():
             raise Exception(f"Could not find {function_name}'s testbench output file.")
