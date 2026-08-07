@@ -58,13 +58,22 @@ def save_hyperparam_name_definitions(folder, function_name, hyperparams):
         json.dump(names_dict, json_file, ensure_ascii=False, indent=4)
 
 def get_hyperparam_name_definitions(folder, function_name):
+    file_path = Path(folder) / f"{function_name}_name_definitions.json"
 
-    with open(f"{folder}/{function_name}_name_definitions.json", "r", encoding="utf-8") as json_file:
+    if not file_path.exists():
+        return {}
+
+    with file_path.open("r", encoding="utf-8") as json_file:
         hyperparams_names = json.load(json_file)
-    
+
     return hyperparams_names
 
 def get_metric_names(folder):
+
+    file_path = Path(folder) / "metric_names.json"
+
+    if not file_path.exists():
+        return {}
 
     with open(f"{folder}/metric_names.json", "r", encoding="utf-8") as json_file:
         metric_names = json.load(json_file)
@@ -235,7 +244,7 @@ class PharosHLS:
     
         hw_metric = hw_metric.value
 
-        df = self.get_synth_results(function_name, part, remove_const_cols=True)
+        df = self.get_synth_results(function_name, part, remove_const_cols=False)
 
         hyperparam_names = get_hyperparam_name_definitions(self.folder_path, function_name)
         metric_names = get_metric_names(self.folder_path)
