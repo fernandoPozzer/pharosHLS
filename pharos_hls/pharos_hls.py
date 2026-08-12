@@ -198,6 +198,32 @@ class PharosHLS:
         df = df.head(num_of_lines_to_print)
         print(tabulate(df, headers="keys", tablefmt="grid", showindex=False))
 
+    def print_synth_and_tb_results(self, function_name: str, part: str, tb_metrics: dict, expected_values):
+        
+        df = self.get_synth_results(function_name, part, sort = True, remove_const_cols = False)
+        tb = self.get_testbench_results(function_name)
+
+        # Creating the new colums
+        for new_column in tb_metrics.keys():
+            df[new_column] = 0.0
+
+        for config_output in tb:
+            
+            config = config_output["config"]
+            values = config_output["out"]
+
+            mask = df[list(config)].eq(pd.Series(config)).all(axis=1)
+
+            for metric, func in tb_metrics.items():
+                df.loc[mask, metric] = func(values, expected_values)
+
+        tab = tabulate(df, headers="keys", tablefmt="grid", showindex=False)
+        title_width = max(len(line) for line in tab.splitlines())
+
+        print("+" + "-" * (len(tab.splitlines()[0]) - 2) + "+")
+        print(f"|{function_name.center(title_width - 2)}|")
+        print(tab)
+
     def define_metric_names(self, metric_names: dict):
 
         with open(f"{self.folder_path}/metric_names.json", "w", encoding="utf-8") as json_file:
