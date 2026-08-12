@@ -165,7 +165,7 @@ class PharosHLS:
         with open(tb_file, "r", encoding="utf-8") as f:
             return json.load(f)
         
-    def get_synth_results(self, function_name, part, remove_const_cols = True):
+    def get_synth_results(self, function_name, part, sort = False, remove_const_cols = False):
 
         csv_file = Path(self.folder_path) / "data" / f"{function_name}_{part}.csv"
 
@@ -174,6 +174,12 @@ class PharosHLS:
         
         df =  pd.read_csv(csv_file)
 
+        if sort:
+
+            idx_sort = df.columns.get_loc("BRAM_18K")
+            keys_to_sort = df.columns[:idx_sort]
+            df = df.sort_values(by=keys_to_sort.to_list())
+
         if remove_const_cols:
             for col in df.columns:
                 if df[col].nunique(dropna=False) == 1:
@@ -181,16 +187,16 @@ class PharosHLS:
         
         return df
         
-    def print_synth_results(self, function_name: str, part: str, num_of_lines_to_print: int = -1, remove_const_cols = True):
+    def print_synth_results(self, function_name: str, part: str, sort = False, num_of_lines_to_print: int = -1, remove_const_cols = False):
         
-        df = self.get_synth_results(function_name, part, remove_const_cols)
+        df = self.get_synth_results(function_name, part, sort, remove_const_cols)
         total_lines = len(df)
 
         if total_lines < num_of_lines_to_print or num_of_lines_to_print < 0:
             num_of_lines_to_print = total_lines
 
         df = df.head(num_of_lines_to_print)
-        print(tabulate(df, headers="keys", tablefmt="grid", showindex=False, floatfmt=".0f"))
+        print(tabulate(df, headers="keys", tablefmt="grid", showindex=False))
 
     def define_metric_names(self, metric_names: dict):
 
