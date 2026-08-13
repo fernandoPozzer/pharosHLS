@@ -19,7 +19,7 @@ template<int N, int NEWTON> void cpp_exp(input_t value, output_t& resp)
 /// -------------------------------------
 /// Pade's Approximants with division
 /// -------------------------------------
-template<int N, int NEWTON> void pade_with_division(input_t value, output_t& resp, const operation_t paramsP[N + 1], const operation_t paramsQ[N + 1])
+template<int N> void pade_with_division(input_t value, output_t& resp, const operation_t paramsP[N + 1], const operation_t paramsQ[N + 1])
 {
     operation_t num = paramsP[0];
     operation_t den = paramsQ[0];
